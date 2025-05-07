@@ -1,0 +1,116 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>メモ帳</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    #toolbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: #f8f8f8;
+      padding: 10px;
+      display: flex;
+      gap: 10px;
+      z-index: 1000;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    #editor {
+      margin-top: 60px;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    .highlight {
+      background-color: red;
+      color: transparent;
+      cursor: pointer;
+    }
+    .highlight.visible {
+      color: black;
+      background-color: rgba(255, 0, 0, 0.3);
+    }
+    #searchBox {
+      flex: 1;
+    }
+    #instructions {
+      margin-left: auto;
+      font-size: 0.9em;
+      color: gray;
+    }
+  </style>
+</head>
+<body>
+  <div id="toolbar">
+    <button id="toggleAll">表示ON/OFF</button>
+    <input type="text" id="searchBox" placeholder="キーワードを検索（例: ファイヤー）" />
+    <div id="instructions">左クリックでマーカー、右クリックで解除</div>
+  </div>
+  <div id="editor" contenteditable="true"></div>
+
+  <script>
+    const STORAGE_URL = "https://mocki.io/v1/d568baf9-02de-4cb5-8991-260b09485b8a";
+    const editor = document.getElementById("editor");
+    const toggleBtn = document.getElementById("toggleAll");
+    const searchBox = document.getElementById("searchBox");
+    let highlightsVisible = false;
+
+    fetch(STORAGE_URL)
+      .then((res) => res.json())
+      .then((data) => {
+        editor.innerHTML = data.content;
+        addHighlightHandlers();
+      });
+
+    function toggleHighlights() {
+      const spans = document.querySelectorAll(".highlight");
+      highlightsVisible = !highlightsVisible;
+      spans.forEach((span) => {
+        span.classList.toggle("visible", highlightsVisible);
+      });
+    }
+
+    toggleBtn.addEventListener("click", toggleHighlights);
+
+    function addHighlightHandlers() {
+      editor.querySelectorAll(".highlight").forEach((el) => {
+        el.addEventListener("click", () => el.classList.toggle("visible"));
+        el.addEventListener("contextmenu", (e) => {
+          e.preventDefault();
+          const parent = el.parentNode;
+          parent.replaceChild(document.createTextNode(el.textContent), el);
+        });
+      });
+    }
+
+    editor.addEventListener("mouseup", () => {
+      const selection = window.getSelection();
+      const range = selection.getRangeAt(0);
+      if (!range || selection.isCollapsed) return;
+      const span = document.createElement("span");
+      span.className = "highlight";
+      span.textContent = selection.toString();
+      range.deleteContents();
+      range.insertNode(span);
+      selection.removeAllRanges();
+      addHighlightHandlers();
+    });
+
+    searchBox.addEventListener("change", () => {
+      const keyword = searchBox.value;
+      if (!keyword) return;
+      const match = editor.innerHTML.indexOf(`【${keyword}】`);
+      if (match !== -1) {
+        window.scrollTo({ top: editor.innerHTML.slice(0, match).split("\n").length * 20, behavior: "smooth" });
+      }
+    });
+  </script>
+</body>
+</html>
