@@ -178,10 +178,17 @@
       reader.onload = function(e) {
         try {
           const data = JSON.parse(e.target.result);
-          document.getElementById("editor").innerHTML = data.content || "";
+          let content = "";
+          if (data.content) {
+            content = data.content;
+          } else {
+            const firstKey = Object.keys(data)[0];
+            content = data[firstKey]?.content || "";
+          }
+          document.getElementById("editor").innerHTML = content;
           document.querySelectorAll(".masked").forEach(applyEventsToMasked);
         } catch (err) {
-          alert("読み込み失敗");
+          alert("読み込みに失敗しました");
         }
       };
       reader.readAsText(file);
