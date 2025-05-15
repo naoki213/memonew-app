@@ -109,6 +109,44 @@
       display: block;
       max-width: 90%;
     }
+    @media (max-width: 768px) {
+      #qrBtn { display: none; }
+    }
+    @media (min-width: 769px) {
+      #cameraBtn { display: none; }
+    }
+    #qrOverlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.7);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+    }
+    #qrBox {
+      position: relative;
+      background: #fff;
+      padding: 1rem;
+      border-radius: 10px;
+    }
+    #qrBox canvas {
+      max-width: 90vw;
+      max-height: 90vh;
+    }
+    #qrBox .close-btn {
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      background: red;
+      color: white;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      font-weight: bold;
+      cursor: pointer;
+      border: none;
+    }
   </style>
 </head>
 <body>
@@ -131,13 +169,21 @@
     <button onclick="exportToFile()">出力</button>
     <input type="file" accept=".json" onchange="importFromFile(event)">
     <button onclick="autoMask()">自動マーカー</button>
-    <button onclick="generateQR()">QR表示</button>
-    <button onclick="startQRScan()">📷カメラ</button>
+    <button id="qrBtn" onclick="showQR()">QR</button>
+    <button id="cameraBtn" onclick="startQRScan()">📷</button>
     <input type="text" id="searchInput" placeholder="検索" oninput="searchText()" />
   </div>
+
   <div id="pageTabs"></div>
   <div id="editor" contenteditable="true"></div>
-  <canvas id="qrCanvas"></canvas>
+
+  <div id="qrOverlay">
+    <div id="qrBox">
+      <button class="close-btn" onclick="document.getElementById('qrOverlay').style.display='none'">×</button>
+      <canvas id="qrCanvas"></canvas>
+    </div>
+  </div>
+
   <div id="qrScanner" style="width:300px;"></div>
 
   <script>
@@ -175,7 +221,7 @@
 
     function toggleMarkMode() {
       markMode = !markMode;
-      document.getElementById("mmToggleBtn").textContent = `MM: ${markMode ? "ON" : "OFF"}`;
+      document.getElementById("mmToggleBtn").textContent = "MM: " + (markMode ? "ON" : "OFF");
     }
 
     function toggleReadOnly() {
@@ -237,11 +283,12 @@
       alert("赤枠をマスキングしました");
     }
 
-    function generateQR() {
+    function showQR() {
       saveCurrentPageContent();
       const content = pages[currentPageId].content;
       QRCode.toCanvas(document.getElementById('qrCanvas'), content, function (error) {
         if (error) console.error(error);
+        else document.getElementById('qrOverlay').style.display = 'flex';
       });
     }
 
@@ -284,6 +331,7 @@
         const content = document.getElementById("editor").innerHTML;
         const text = document.getElementById("editor").innerText.trim().split("\n")[0] || "無題メモ";
         pages[currentPageId] = { ...pages[currentPageId], name: text, content: content };
+        localStorage.setItem("pages", JSON.stringify(pages));
       }
     }
 
