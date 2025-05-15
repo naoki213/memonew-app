@@ -27,7 +27,7 @@
       z-index: 1000;
     }
     #pageTabs {
-      margin-top: 110px;
+      margin-top: 140px; /* ← 干渉解消 */
       display: flex;
       align-items: center;
       padding: 0.5rem 1rem;
@@ -51,14 +51,6 @@
     .page-tab.active {
       background: #007bff;
       color: white;
-    }
-    .page-tab button {
-      background: none;
-      border: none;
-      color: inherit;
-      margin-left: 0.5rem;
-      cursor: pointer;
-      font-weight: bold;
     }
     #editor {
       margin: 1rem auto;
@@ -103,11 +95,6 @@
       font-size: 1rem;
       border: 1px solid #ccc;
       border-radius: 6px;
-    }
-    #qrCanvas, #qrScanner {
-      margin: 1rem auto;
-      display: block;
-      max-width: 90%;
     }
     @media (max-width: 768px) {
       #qrBtn { display: none; }
@@ -286,9 +273,14 @@
     function showQR() {
       saveCurrentPageContent();
       const content = pages[currentPageId].content;
-      QRCode.toCanvas(document.getElementById('qrCanvas'), content, function (error) {
-        if (error) console.error(error);
-        else document.getElementById('qrOverlay').style.display = 'flex';
+      const canvas = document.getElementById('qrCanvas');
+      QRCode.toCanvas(canvas, content, function (error) {
+        if (error) {
+          console.error(error);
+          alert("QRコードの生成に失敗しました");
+        } else {
+          document.getElementById('qrOverlay').style.display = 'flex';
+        }
       });
     }
 
