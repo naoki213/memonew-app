@@ -1,3 +1,5 @@
+このアプリに修正をお願いできますか？
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -47,7 +49,9 @@
 
   <div id="tabB" class="content">
     <textarea id="newQuestion" placeholder="問題を入力"></textarea>
+    <button onclick="startSpeech('newQuestion')">🎤 音声入力（問題）</button>
     <textarea id="newAnswer" placeholder="解答を入力"></textarea>
+    <button onclick="startSpeech('newAnswer')">🎤 音声入力（解答）</button>
     <button onclick="saveQuestion()">保存</button>
   </div>
 
@@ -178,6 +182,26 @@
         }
       };
       reader.readAsText(file);
+    }
+
+    function startSpeech(targetId) {
+      if (!('webkitSpeechRecognition' in window)) {
+        alert('このブラウザでは音声認識がサポートされていません');
+        return;
+      }
+      const recognition = new webkitSpeechRecognition();
+      recognition.lang = 'ja-JP';
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+      recognition.start();
+      recognition.onresult = function (event) {
+        const transcript = event.results[0][0].transcript;
+        const textarea = document.getElementById(targetId);
+        textarea.value += transcript;
+      };
+      recognition.onerror = function () {
+        alert('音声認識に失敗しました');
+      };
     }
   </script>
 </body>
